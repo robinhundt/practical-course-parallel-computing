@@ -30,6 +30,7 @@
 // Run for that many time steps
 #define DEFAULT_TIMESTEPS 1000
 
+int pos_to_mem_loc(int i, int j, int blocknum, int blocksize, int padded_grid_size);
 void init_cells(double* grid, int gridsize);
 void print(double* grid, int padded_grid_size, int time);
 void save(FILE *f, double* grid, int padded_grid_size, int time);
@@ -100,20 +101,18 @@ int main(int argc, char** argv) {
   init_cells(T,padded_grid_size);
   
   int grid_part_x = rank % numtasks_sqrt; 
-  int grid_part_y = 
+  int grid_part_y = ((rank - grid_part_x) / numtasks_sqrt) % numtasks_sqrt;
 
-  int start_x = 
-  int end_x = 
-  int start_y = 
-  int end_y = 
-  int startindex = rank * blocksize + 1;
-  int endindex = (rank+1) * blocksize + 1;
+  int start_x = 1 + grid_part_x * blocksize;
+  int end_x = 1 + (grid_part_x + 1) * blocksize;
+  int start_y = 1 + grid_part_y * blocksize;
+  int end_y = 1 + (grid_part_y + 1) * blocksize;
 
   for(int t=0;t<TIMESTEPS;t++) { // Loop for the time steps
     
     // Calculate grid cells for next timestep
-    for(int i=startindex; i<endindex; i++) {
-      for(int j=1; j<padded_grid_size-1; j++) {
+    for(int i=start_x; i<end_x; i++) {
+      for(int j=start_y; j<end_y; j++) {
         // Tn[i*padded_grid_size + j] = Tn[(i-1)*padded_grid_size+j] + Tn[i*padded_grid_size + (j-1)] \
         //           + Tn[(i-1)*padded_grid_size+(j-1)] + Tn[i*padded_grid_size+(j+1)] \
         //           + Tn[(i+1)*padded_grid_size+j] + Tn[(i+1)*padded_grid_size+(j+1)] \
@@ -124,18 +123,22 @@ int main(int argc, char** argv) {
     }
     MPI_Barrier(MPI_COMM_WORLD);
     // copy new grid into old one
-    for(int i=startindex; i<endindex; i++) {
-      for(int j=1; j<padded_grid_size-1; j++) {
+    for(int i=start_x; i<end_x; i++) {
+      for(int j=start_y; j<end_y; j++) {
         T[i*padded_grid_size+j] = Tn[i*padded_grid_size+j];
       }
     }
-    int rc = MPI_Allgather(MPI_IN_PLACE, 0,
-                               MPI_DATATYPE_NULL, &T[padded_grid_size], padded_grid_size*blocksize,
-                               MPI_DOUBLE, MPI_COMM_WORLD);   
-    //  int rc = MPI_Bcast(&T[startindex], blocksize * padded_grid_size, MPI_DOUBLE, rank, MPI_COMM_WORLD);
-    if(rc != MPI_SUCCESS) {
-        printf("Allgather failed: %d\n", rc);
-    }
+    // int rc = MPI_Allgather(MPI_IN_PLACE, 0,
+    //                         MPI_DATATYPE_NULL, &T[padded_grid_size], padded_grid_size*blocksize,
+    //                         MPI_DOUBLE, MPI_COMM_WORLD);
+    // for(int i=0; i<blocksize; i++) {
+    //   int startindex_of_row_in_block = 1 + padded_grid_size + (blocksize * padded_grid_size) * grid_part_y + i * (padded_grid_size-1);
+    //   int rc = MPI_Bcast(&T[startindex_of_row_in_block], blocksize, MPI_DOUBLE, 0, MPI_COMM_WORLD);      
+    //   if(rc != MPI_SUCCESS) {
+    //     printf("BCAST failed: %d\n", rc);
+    //   }
+    // }
+
     MPI_Barrier(MPI_COMM_WORLD);    
     if(!(t % PRINTSTEP) && rank == 0) {
       // print(T,padded_grid_size,t);
@@ -149,6 +152,17 @@ int main(int argc, char** argv) {
   MPI_Finalize();
 
   return 0;
+}
+
+int pos_to_mem_loc(int i, int j, int blocknum, int blocksize, int padded_grid_size) {
+  // place padding in continous region at start of buffer 
+  if(i == 0 || j == 0 || i == padded_grid_size-1 || j == padded_grid_size-1) {
+    if(j == 0 || i == padded_grid_size-1) 
+      return i+j;
+    return i+j + (padded_grid_size-1) * 2 - 1;
+  }
+  int padding_offset = padded_grid_size * 2 + (padded_grid_size - 2) * 2;
+  return padding_offset + (i * blocksize + j) + blocknum * blocksize * blocksize;
 }
 
 
