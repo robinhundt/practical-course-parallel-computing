@@ -44,6 +44,7 @@ int main(int argc, char** argv) {
   MPI_Init(&argc, &argv);
   MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Status status;
   
   if( find_option( argc, argv, "-h" ) >= 0 )
   {
@@ -74,10 +75,8 @@ int main(int argc, char** argv) {
       return 1;
   }
   
-  
-  int t;
 
-  double *T, *Tn, *T_block, *Tn_block;
+  double *T, *T_block, *Tn_block;
   
   // Allocate Grid with a padding on every side for convenience
   int padded_grid_size = GRIDSIZE+2;
@@ -85,43 +84,36 @@ int main(int argc, char** argv) {
   if(rank == 0) {
     T=(double *) malloc((padded_grid_size)*(padded_grid_size)*sizeof(double));
     // temp grid to hold the calculated data for the next time step
-    Tn=(double *) malloc((padded_grid_size)*(padded_grid_size)*sizeof(double));
     init_cells(T,padded_grid_size);
   }
 
-  T_block = (double *) malloc(padded_grid_size * (blocksize+2));
-  Tn_block = (double *) malloc(padded_grid_size * (blocksize+2));
-
+  T_block = (double *) malloc(padded_grid_size * (blocksize+2) * sizeof(double));
+  Tn_block = (double *) malloc(padded_grid_size * (blocksize+2) * sizeof(double));
 
   MPI_Scatter(&T[padded_grid_size], padded_grid_size * blocksize, MPI_DOUBLE, &T_block[padded_grid_size],
               padded_grid_size * blocksize, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   
   // remember -- our grid has a border around it!
   
-  int startindex = rank * blocksize + 1;
-  int endindex = (rank+1) * blocksize + 1;
   int last_row = padded_grid_size * (blocksize + 1);
   int next_to_last_row = last_row - padded_grid_size;
-  for(t=0;t<TIMESTEPS;t++) { // Loop for the time steps
-    if(rank != 0 || rank != numtasks-1) {
-      MPI_Sendrecv(&T_block[padded_grid_size], padded_grid_size, MPI_DOUBLE, rank, 42, 
-                    &T_block[last_row], padded_grid_size, MPI_DOUBLE, rank-1, 42, MPI_COMM_WORLD, NULL);
-      MPI_Sendrecv(&T_block[next_to_last_row], padded_grid_size, MPI_DOUBLE, rank, 42, 
-                    T_block, padded_grid_size, MPI_DOUBLE, rank+1, 42, MPI_COMM_WORLD, NULL);
+
+  for(int t=0;t<TIMESTEPS;t++) { // Loop for the time steps
+    if(rank > 0 && rank < numtasks-1) {
+      MPI_Sendrecv(&T_block[padded_grid_size], padded_grid_size, MPI_DOUBLE, rank-1, 42, 
+                    T_block, padded_grid_size, MPI_DOUBLE, rank-1, 42, MPI_COMM_WORLD, NULL);
+      MPI_Sendrecv(&T_block[next_to_last_row], padded_grid_size, MPI_DOUBLE, rank+1, 42, 
+                    &T_block[last_row], padded_grid_size, MPI_DOUBLE, rank+1, 42, MPI_COMM_WORLD, NULL);
     } else if(rank == 0) {
-      MPI_Sendrecv(&T_block[next_to_last_row], padded_grid_size, MPI_DOUBLE, 1, 42, T_block, padded_grid_size,
-                  MPI_DOUBLE, 0, 42, MPI_COMM_WORLD, NULL);
-    } else {
-      MPI_Sendrecv(&T_block[padded_grid_size], padded_grid_size, MPI_DOUBLE, numtasks-1, 42, &T_block[last_row], padded_grid_size,
-                  MPI_DOUBLE, numtasks-2, 42, MPI_COMM_WORLD, NULL);
+      MPI_Sendrecv(&T_block[next_to_last_row], padded_grid_size, MPI_DOUBLE, 1, 42, &T_block[last_row], padded_grid_size,
+                  MPI_DOUBLE, 1, 42, MPI_COMM_WORLD, &status);
+    } else if(rank == numtasks-1) {
+      MPI_Sendrecv(&T_block[padded_grid_size], padded_grid_size, MPI_DOUBLE, rank-1, 42, T_block, padded_grid_size,
+                  MPI_DOUBLE, rank-1, 42, MPI_COMM_WORLD, &status);
     }
     // Calculate grid cells for next timestep
     for(int i=1; i<blocksize+1; i++) {
       for(int j=1; j<padded_grid_size-1; j++) {
-        // Tn[i*padded_grid_size + j] = Tn[(i-1)*padded_grid_size+j] + Tn[i*padded_grid_size + (j-1)] \
-        //           + Tn[(i-1)*padded_grid_size+(j-1)] + Tn[i*padded_grid_size+(j+1)] \
-        //           + Tn[(i+1)*padded_grid_size+j] + Tn[(i+1)*padded_grid_size+(j+1)] \
-        //           + Tn[(i+1)*padded_grid_size+(j-1)] + Tn[(i-1)*padded_grid_size+(j+1)];
         Tn_block[i*padded_grid_size + j] = (T_block[(i-1)*padded_grid_size+j] + T_block[i*padded_grid_size + (j-1)] \
           + T_block[i*padded_grid_size+(j+1)] + T_block[(i+1)*padded_grid_size+j]) / 4.0;
       }
@@ -133,11 +125,11 @@ int main(int argc, char** argv) {
       }
     }
     MPI_Barrier(MPI_COMM_WORLD);    
-    if(!(t % PRINTSTEP) && rank == 0) {
-      // print(T,padded_grid_size,t);
+    if(!(t % PRINTSTEP)) {
       MPI_Gather(&T_block[padded_grid_size], blocksize*padded_grid_size, MPI_DOUBLE, &T[padded_grid_size],
                 blocksize*padded_grid_size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-      save(f,T,padded_grid_size,TIMESTEPS);
+      if(rank == 0)
+        save(f,T,padded_grid_size,TIMESTEPS);
     }
   }
   
