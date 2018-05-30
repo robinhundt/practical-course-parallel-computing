@@ -3,6 +3,7 @@
 
 int answer = 42;
 
+// print value of global variable answer 
 void *hello() {
     printf("The answer is again %d\n", answer);
     pthread_exit(NULL);

@@ -15,15 +15,19 @@ typedef struct {
     int tid;
 } interval;
 
+// helper function to print unsigned __int128 variables
+// outputs nothing when param. is 0
 void print_uint128(unsigned __int128 n) {
-    if (n == 0) {
+    if (n == 0) 
       return;
-    }
 
     print_uint128(n/10);
     putchar(n%10+'0');
 }
 
+/**
+ * Sum integers in interval [start, end] of passed struct interval.
+ **/
 void *add(void *arg) {
     interval *my_interval = (interval *) arg;
     long start = my_interval->start;
@@ -31,11 +35,13 @@ void *add(void *arg) {
 
     printf("Thread: %d, Interval: %ld - %ld\n", my_interval->tid, start, end);
 
-    pthread_mutex_lock(&mutex_sum);
-    // for(long j=start; j<=end; j++)
-    //     sum += j;
+    unsigned __int128 my_sum = 0;
+    for(long j=start; j<=end; j++)
+        my_sum += j;
     // is equivalent to the following:
-    sum += ( (unsigned __int128) end * end + end) / 2 - ( (unsigned __int128) start * start - start) / 2;
+    // sum += ( (unsigned __int128) end * end + end - ( (unsigned __int128) start * start - start)) / 2;
+    pthread_mutex_lock(&mutex_sum);
+    sum += my_sum;
     printf("Thread: %d, sum at = ", my_interval->tid);    
     print_uint128(sum);
     putchar('\n');
@@ -45,6 +51,9 @@ void *add(void *arg) {
     pthread_exit(NULL);
 }
 
+/**
+ * creates NUM_THREADS of pthreads to compute sum of interval [0, NUMBERS] in parallel.
+ **/
 int main() {
     interval *intervals = malloc(sizeof *intervals * NUM_THREADS);
     pthread_t threads[NUM_THREADS];
@@ -63,6 +72,8 @@ int main() {
     printf("Final global sum = ");
     print_uint128(sum);
     putchar('\n');
+
+    //cleanup
     free(intervals);
     exit(0);
 }

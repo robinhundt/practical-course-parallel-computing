@@ -11,6 +11,16 @@ int count = 0;
 pthread_mutex_t count_mutex;
 pthread_cond_t count_threshold_cv;
 
+/**
+ * This function increases global variable count in a loop with TCOUNT iterations.
+ * Before accessing count, the count_mutex lock is acquired. Then it's released.
+ * When it's equal to COUNT_LIMIT then a at least one thread blocked by cond. variable count_threshold_cv 
+ * is unblocked.
+ * 
+ * At end of count incrementing loop, thread sleeps for 1 sec.
+ * 
+ * param t: expect variable of type long, storing id of thread running function
+ **/
 void *inc_count(void *t) {
     long my_id = (long) t;
     
@@ -29,6 +39,12 @@ void *inc_count(void *t) {
     pthread_exit(NULL);
 }
 
+
+/**
+ * As long as count < COUNT_LIMIT:
+ * Function which will wait until condition variable count_threshold_cv receives signal
+ * Then increase count by 125 while having the count_mutex lock. 
+ **/
 void *watch_count(void *t) {
     long my_id = (long) t;
     printf("Starting watch_count(): thread %ld\n", my_id);
@@ -46,9 +62,12 @@ void *watch_count(void *t) {
 }
 
 int main() {
+    // store function pointers to watch_count and inc_count (* 2) in array
     void *(*func_ptrs[NUM_THREADS])(void *) = {watch_count, inc_count, inc_count};
     pthread_t threads[NUM_THREADS];
+    // initialize mutex with default attr.
     pthread_mutex_init(&count_mutex, NULL);
+    // initialize condition variable with default attr.
     pthread_cond_init(&count_threshold_cv, NULL);
     for(long t=0; t<NUM_THREADS; t++)
         pthread_create(&threads[t], NULL, func_ptrs[t], (void *) t);
@@ -56,6 +75,8 @@ int main() {
     for(int i=0; i<NUM_THREADS; i++) 
         pthread_join(threads[i], NULL);
     printf("Main(): Waited and joined with %d threads. Final value of count = %d.", NUM_THREADS, count);
+
+    // cleanup
     pthread_mutex_destroy(&count_mutex);
     pthread_cond_destroy(&count_threshold_cv);
     exit(0);
