@@ -127,10 +127,17 @@ int main(int argc, char** argv) {
         T_block[i*padded_grid_size+j] = Tn_block[i*padded_grid_size+j];
       }
     }
-    MPI_Barrier(MPI_COMM_WORLD);    
+    MPI_Barrier(MPI_COMM_WORLD);
+    /**
+       * This is a quick and dirty fix to implement the save functionionality. A better way would be to have each thread 
+       * save it's part of the grid every PRINTSTEP timestep into it's own file and then merge those individual files, each representing
+       * a part of the grid over time, into one output file at the end of the simulation. This way we can get rid of the Gather
+       * and the non rank 0 threads are not idle during the save process.
+       **/    
     if(!(t % PRINTSTEP)) {
       MPI_Gather(&T_block[padded_grid_size], blocksize*padded_grid_size, MPI_DOUBLE, &T[padded_grid_size],
                 blocksize*padded_grid_size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+      
       if(rank == 0)
         save(f,T,padded_grid_size,TIMESTEPS);
     }
@@ -145,18 +152,17 @@ int main(int argc, char** argv) {
 
 
 void init_cells(double* grid, int gridsize) {
-  int i,j;
-  
   // set everything to zero, even the border
-  for(i=0;i<gridsize;i++) {
-    for(j=0;j<gridsize;j++) {
+  #pragma omp parallel for default(none) shared(grid, gridsize)  
+  for(int i=0;i<gridsize;i++) {
+    for(int j=0;j<gridsize;j++) {
       grid[i*gridsize + j]=0;
     }
   }
   
   // but the most inner 4 cells
-  for(i=gridsize/2-1;i<=gridsize/2;i++) {
-    for(j=gridsize/2-1;j<=gridsize/2;j++) {
+  for(int i=gridsize/2-1;i<=gridsize/2;i++) {
+    for(int j=gridsize/2-1;j<=gridsize/2;j++) {
       grid[i*gridsize + j]=1;
     }
   }
