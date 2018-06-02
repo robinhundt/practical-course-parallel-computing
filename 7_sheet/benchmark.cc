@@ -56,9 +56,9 @@ int main( int argc, char **argv ){
     n = n+nOld;
     nOld = tmp;
     buf = (double *)malloc(n*sizeof(double));
-    printf("Test: %d Buffersize %d\n",i,(n*sizeof(double)));
+    //printf("Test: %d Buffersize %d\n",i,(n*sizeof(double)));
     //testruns in this test
-    for (j=1;j<numberOfRunsPerTest;j++){
+    for (j=0;j<numberOfRunsPerTest;j++){
         if (rank == 0) {
           MPI_Barrier(MPI_COMM_WORLD);
           /* Make sure both processes are ready */
@@ -77,17 +77,18 @@ int main( int argc, char **argv ){
           t[i]+=time;
 
           //if last run for this testcase compute average of t
-          if(j==NUMBER_OF_TESTS)
-            t[i]/=10;
+          if(j+1==numberOfRunsPerTest)
+            t[i]=t[i]/10;
 
           //update tmin and tmax
-          if(i==0){
+          if(j==0){
             tmax[i]=tmin[i]=time;
-          }
-          if(time<tmin[i])
-            tmin[i]=time;
-          if(time>tmax[i])
-            tmax[i]=time;  
+          }else{
+	    if(time<tmin[i])
+           	 tmin[i]=time;
+            if(time>tmax[i])
+           	 tmax[i]=time;
+	  }  
       } else if (rank == 1) {
           MPI_Barrier(MPI_COMM_WORLD);
           /* Make sure both processes are ready */

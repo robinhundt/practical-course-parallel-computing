@@ -2,4 +2,5 @@
 .idea/
 *.o
 *.tar
-.vscode/
+.vscodeo/
+*.csv
