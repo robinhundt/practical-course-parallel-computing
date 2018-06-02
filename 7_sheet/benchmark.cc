@@ -11,7 +11,7 @@ int read_int( int argc, char **argv, const char *option, int default_value );
 char *read_string( int argc, char **argv, const char *option, char *default_value );
 
 
-#define NUMBER_OF_TESTS 100
+#define NUMBER_OF_TESTS 21
 #define DEFAULT_NLOOP 1000
 
 int main( int argc, char **argv ){
@@ -56,6 +56,7 @@ int main( int argc, char **argv ){
     n = n+nOld;
     nOld = tmp;
     buf = (double *)malloc(n*sizeof(double));
+    printf("Test: %d Buffersize %d\n",i,(n*sizeof(double)));
     //testruns in this test
     for (j=1;j<numberOfRunsPerTest;j++){
         if (rank == 0) {
@@ -71,9 +72,9 @@ int main( int argc, char **argv ){
           t2 = MPI_Wtime();
 
           //compute needed time for this run and update tmin and tmax
-          int time = t2-t1;
+          double time = t2-t1;
           //addup t
-          t[j]+=time;
+          t[i]+=time;
 
           //if last run for this testcase compute average of t
           if(j==NUMBER_OF_TESTS)
@@ -124,13 +125,13 @@ void save( int argc, char **argv, int numberOfTests, double *t, double *tmin, do
       return;
   }
 
-  fprintf( f, "buffersize;t_average;t_min;t_max; send messages\n");
+  fprintf( f, "buffersize;t_average;t_min;t_max;send messages\n");
   int buffersize=13, buffersizeOld=8;
   for( int i = 0; i < numberOfTests; i++ ){
     int tmp= buffersize;
     buffersize = buffersize+buffersizeOld;
     buffersizeOld = tmp;
-    fprintf( f, "%d;%g;%g;%g;%d\n", buffersize,t[i], tmin[i],tmax[i],nloop);
+    fprintf( f, "%d;%g;%g;%g;%d\n", buffersize *sizeof(double),t[i], tmin[i],tmax[i],nloop);
   }
   fclose(f);
 }
