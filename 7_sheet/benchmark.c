@@ -17,8 +17,8 @@ char *read_string( int argc, char **argv, const char *option, char *default_valu
 int main( int argc, char **argv ){
   double       *buf;
   int          rank;
-  int          n;
-  int          nOld;
+  long          n;
+  long          nOld;
   int          numberOfTests;
   double       t1, t2, *tmin, *tmax, *t;
   int          nloop;
@@ -108,7 +108,7 @@ void save( int argc, char **argv, int numberOfTests, double *t, int nloop){
   }
 
   fprintf( f, "buffersize;t_average;send messages\n");
-  int buffersize=1, buffersizeOld=0;
+  long buffersize=1, buffersizeOld=0;
   for( int i = 0; i < numberOfTests; i++ ){
     int tmp= buffersize;
     buffersize = buffersize+buffersizeOld;
