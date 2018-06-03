@@ -2,5 +2,6 @@
 .idea/
 *.o
 *.tar
-.vscodeo/
+.vscode/
 *.csv
+.ipynb_checkpoints/
