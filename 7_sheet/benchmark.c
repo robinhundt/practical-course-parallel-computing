@@ -107,7 +107,7 @@ void save( int argc, char **argv, int numberOfTests, double *t, int nloop){
       return;
   }
 
-  fprintf( f, "buffersize;t_average;t_min;t_max;send messages\n");
+  fprintf( f, "buffersize;t_average;send messages\n");
   int buffersize=1, buffersizeOld=0;
   for( int i = 0; i < numberOfTests; i++ ){
     int tmp= buffersize;
