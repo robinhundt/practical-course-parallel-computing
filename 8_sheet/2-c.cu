@@ -131,7 +131,7 @@ int main(int argc, char const *argv[])
     }
     printf("\n");
 
-    int double sum = 0;
+    double sum = 0;
     printf("Complete sum-reduction: ");
     for(int i=0; i<dimGrid; i++)
         sum += out[i];
