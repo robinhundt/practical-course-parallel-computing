@@ -42,12 +42,12 @@ __global__ void reduce(float *g_in, double *g_out, unsigned int n)
     }
 
     if(tid < 32) {
-        if(blockSize >= 64) s_data[tid] += s_data[tid + 32];
-        if(blockSize >= 32) s_data[tid] += s_data[tid + 16];
-        if(blockSize >= 16) s_data[tid] += s_data[tid + 8];
-        if(blockSize >= 8) s_data[tid] += s_data[tid + 4];
-        if(blockSize >= 4) s_data[tid] += s_data[tid + 2];
-        if(blockSize >= 2) s_data[tid] += s_data[tid + 1];
+        if(blockSize >= 64) {s_data[tid] += s_data[tid + 32]; __syncthreads();}
+        if(blockSize >= 32) {s_data[tid] += s_data[tid + 16]; __syncthreads();}
+        if(blockSize >= 16) {s_data[tid] += s_data[tid + 8]; __syncthreads();}
+        if(blockSize >= 8) {s_data[tid] += s_data[tid + 4]; __syncthreads();}
+        if(blockSize >= 4) {s_data[tid] += s_data[tid + 2]; __syncthreads();}
+        if(blockSize >= 2) {s_data[tid] += s_data[tid + 1]; __syncthreads();}
     }
     if(tid == 0) {
         printf("Writing %f\n", s_data[0]);
