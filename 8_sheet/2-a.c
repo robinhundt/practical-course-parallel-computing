@@ -28,10 +28,11 @@ int main(int argc, char const *argv[])
         return 1;
     }
 
-    float arr[N];
+    float *arr = malloc(sizeof *arr *N);
     for(int i=0; i<N; i++) {
         arr[i] = 1;
     }
     printf("Result is: %f\n", sum_arr(arr, N));
+    free(arr);
     return 0;
 }
