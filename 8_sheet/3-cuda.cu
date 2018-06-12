@@ -61,6 +61,7 @@ int main(int argc, char *argv[]) {
     cudaDeviceSynchronize();        
     printMatrix(A, N);
     jacobiIteration<<<nt, nb>>>(A, N, iterations);
+    cudaDeviceSynchronize();            
     printMatrix(A, N);
     fprintf(stderr, "iterations: %d\n", iterations);    
     cudaFree(A);
