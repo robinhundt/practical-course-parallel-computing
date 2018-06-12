@@ -16,15 +16,21 @@ double sum_arr(float arr[], int n) {
 
 int main(int argc, char const *argv[])
 {
-    const int N = argc-1;    
-    if(N == 0 || !is_power_of_two(N)) {
-        printf("Please call the program with the 2^N array elements "
-                "to be summed as arguments.\n");
+    if(argc <= 1) {
+        printf("Please call the program with an integer that is a"
+                " power of two.");
         return 1;
     }
+    unsigned int N = atoi(argv[1]);
+    if(!is_power_of_two(N)) {
+        printf("Please call the program with an integer that is a"
+                " power of two.");
+        return 1;
+    }
+
     float arr[N];
     for(int i=0; i<N; i++) {
-        arr[i] = atof(argv[i+1]);
+        arr[i] = 1;
     }
     printf("Result is: %f\n", sum_arr(arr, N));
     return 0;
