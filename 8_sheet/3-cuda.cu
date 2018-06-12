@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Error: %s\n", cudaGetErrorString(err));
     cudaDeviceSynchronize();        
     printMatrix(A, N);
-    jacobiIteration<<<nt, nb>>>(A, N, iterations);
+    jacobiIteration<<<nb, nt>>>(A, N, iterations);
     err = cudaGetLastError();
     if (err != cudaSuccess) 
         fprintf(stderr, "Error: %s\n", cudaGetErrorString(err));
