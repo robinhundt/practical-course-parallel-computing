@@ -25,6 +25,8 @@ __global__ void reduce(float *g_in, double *g_out, unsigned int n)
     }
     __syncthreads();
 
+    // following is the completely unrolled 
+    // loop for the reduction of the shared array
     if(blockSize >= 512) {
         if(tid < 256)
             s_data[tid] += s_data[tid + 256];
@@ -50,7 +52,6 @@ __global__ void reduce(float *g_in, double *g_out, unsigned int n)
         if(blockSize >= 2) {s_data[tid] += s_data[tid + 1]; __syncthreads();}
     }
     if(tid == 0) {
-        printf("Writing %f\n", s_data[0]);
         g_out[blockIdx.x] = s_data[0];
     }
 }
@@ -124,10 +125,17 @@ int main(int argc, char const *argv[])
 
     cudaDeviceSynchronize();    
 
+    printf("Partial sums from reduction on GPU:\n");
     for(int i=0; i<dimGrid; i++) {
         printf("%f,", out[i]);
     }
-    printf("\n");    
+    printf("\n");
+
+    int double sum = 0;
+    printf("Complete sum-reduction: ");
+    for(int i=0; i<dimGrid; i++)
+        sum[i] += out[i];
+    printf("%f\n", sum);
 
     cudaFree(in);
     cudaFree(out);
