@@ -134,7 +134,7 @@ int main(int argc, char const *argv[])
     int double sum = 0;
     printf("Complete sum-reduction: ");
     for(int i=0; i<dimGrid; i++)
-        sum[i] += out[i];
+        sum += out[i];
     printf("%f\n", sum);
 
     cudaFree(in);
