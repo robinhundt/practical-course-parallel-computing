@@ -121,7 +121,7 @@ int main(int argc, char const *argv[])
 
     cudaDeviceSynchronize();    
 
-    for(int i=0; i<N; i++) {
+    for(int i=0; i<dimGrid; i++) {
         printf("%f,", out[i]);
     }
     printf("\n");    
