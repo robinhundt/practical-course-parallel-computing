@@ -80,7 +80,7 @@ int main(int argc, char const *argv[])
     }
 
 
-    int threadCountGrid = ceil((double)N / log2(N))
+    int threadCountGrid = ceil((double)N / log2(N));
     int dimBlock = 512;
     int dimGrid = ceil((double)threadCountGrid / 512);
     int smemSize = sizeof *out * dimBlock;
