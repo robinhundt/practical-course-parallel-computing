@@ -7,7 +7,7 @@ int is_power_of_two(int x)
     return (x != 0) && ((x & (x - 1)) == 0);
 }
 
-double sum_arr(float arr[], int n) {
+double sum_arr(float *arr, int n) {
     double sum = 0;
     for(int i=0; i<n; i++)
         sum += arr[i];
@@ -28,7 +28,7 @@ int main(int argc, char const *argv[])
         return 1;
     }
 
-    float *arr = malloc(sizeof *arr *N);
+    float *arr = (float *)malloc(sizeof *arr *N);
     for(int i=0; i<N; i++) {
         arr[i] = 1;
     }
