@@ -40,7 +40,7 @@ void jacobiIteration(float *A, int n = 512, float eps=0.01) {
 void printMatrix(float *A, int n = 512) {
     for(int i=0; i<n; i++) {
         for(int  j=0; j<n-1; j++) {
-            printf("%f ", A[i*n+j]);
+            printf("%f;", A[i*n+j]);
         }
         printf("%f\n", A[i*n+n-1]);        
     }
@@ -49,7 +49,7 @@ void printMatrix(float *A, int n = 512) {
 int main(int argc, char *argv[]) {
     int N;
     if (argc > 1) N = atoi(argv[1]); else N = 512; 
-    printf("Using grid size %dx%d", N, N);    
+    printf("Using grid size %dx%d\n", N, N);    
     float *A = (float *) malloc(sizeof *A *N*N);
     initMatrix(A, N);
     printMatrix(A, N);
