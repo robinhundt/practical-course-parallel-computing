@@ -125,11 +125,11 @@ int main(int argc, char const *argv[])
 
     cudaDeviceSynchronize();    
 
-    printf("Partial sums from reduction on GPU:\n");
-    for(int i=0; i<dimGrid; i++) {
-        printf("%f,", out[i]);
-    }
-    printf("\n");
+    // printf("Partial sums from reduction on GPU:\n");
+    // for(int i=0; i<dimGrid; i++) {
+    //     printf("%f,", out[i]);
+    // }
+    // printf("\n");
 
     double sum = 0;
     printf("Complete sum-reduction: ");
