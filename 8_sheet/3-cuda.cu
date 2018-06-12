@@ -57,13 +57,13 @@ int main(int argc, char *argv[]) {
     initMatrix<<<nb, nt>>>(A, N);
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess) 
-        printf("Error: %s\n", cudaGetErrorString(err));
+        fprintf(stderr, "Error: %s\n", cudaGetErrorString(err));
     cudaDeviceSynchronize();        
     printMatrix(A, N);
     jacobiIteration<<<nt, nb>>>(A, N, iterations);
     err = cudaGetLastError();
     if (err != cudaSuccess) 
-        printf("Error: %s\n", cudaGetErrorString(err));
+        fprintf(stderr, "Error: %s\n", cudaGetErrorString(err));
     cudaDeviceSynchronize();            
     printMatrix(A, N);
     fprintf(stderr, "iterations: %d\n", iterations);    
