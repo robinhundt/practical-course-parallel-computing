@@ -82,7 +82,7 @@ int main(int argc, char const *argv[])
 
     int threadCountGrid = ceil((double)N / log2(N));
     int dimBlock = 512;
-    printf("Using %d threads in total\n", max(threadCountGrid, dimBlock);
+    printf("Using %d threads in total\n", max(threadCountGrid, dimBlock));
     printf("Divided on blocks of size %d\n", dimBlock);    
     int dimGrid = ceil((double)threadCountGrid / 512);
     printf("With %d blocks\n", dimGrid);    
