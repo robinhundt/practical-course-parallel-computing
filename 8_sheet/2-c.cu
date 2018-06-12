@@ -81,9 +81,12 @@ int main(int argc, char const *argv[])
 
 
     int threadCountGrid = ceil((double)N / log2(N));
+    printf("Using %d threads in total\n", threadCountGrid);
     int dimBlock = 512;
+    printf("Divided on blocks of size %d\n", dimBlock);    
     int dimGrid = ceil((double)threadCountGrid / 512);
-    int smemSize = sizeof *out * dimBlock;
+    printf("With %d blocks\n", dimGrid);    
+    size_t smemSize = sizeof *out * dimBlock;
     cudaMallocManaged(&out, sizeof *out * dimGrid);
 
     switch(dimBlock) {
