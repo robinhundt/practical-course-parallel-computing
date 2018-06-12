@@ -44,7 +44,7 @@ void printMatrix(float *A, int n = 512) {
 
 int main(int argc, char *argv[]) {
     unsigned int N;
-    int iterations = 100;
+    int iterations = 36;
     if (argc > 1)
         N = atoi(argv[1]);
     else
