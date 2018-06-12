@@ -28,6 +28,7 @@ __global__ void initMatrix(float *A, int n = 512) {
         A_nghbrs[1] = A[(i+1)*n+j];
         A_nghbrs[2] = A[i*n+j-1];
         A_nghbrs[3] = A[i*n+j+1];
+        __syncthreads();
         A[i*n+j] = (A_nghbrs[0] + A_nghbrs[1] + A_nghbrs[2] + A_nghbrs[3]) / 4.0;
     }
 }
@@ -43,11 +44,12 @@ void printMatrix(float *A, int n = 512) {
 
 int main(int argc, char *argv[]) {
     unsigned int N;
+    int iterations = 100;
     if (argc > 1)
         N = atoi(argv[1]);
     else
         N = 512;
-    printf("Using grid size %dx%d\n", N, N);
+    fprintf(stderr, "Using grid size %dx%d\n", N, N);                
     float *A;
     cudaMallocManaged(&A, sizeof *A *N*N);
     dim3 nt(8,8);
@@ -56,11 +58,11 @@ int main(int argc, char *argv[]) {
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess) 
         printf("Error: %s\n", cudaGetErrorString(err));
-
     cudaDeviceSynchronize();        
     printMatrix(A, N);
-    jacobiIteration<<<nt, nb>>>(A, N);
+    jacobiIteration<<<nt, nb>>>(A, N, iterations);
     printMatrix(A, N);
+    fprintf(stderr, "iterations: %d\n", iterations);    
     cudaFree(A);
     return 0;
 }

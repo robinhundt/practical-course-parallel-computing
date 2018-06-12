@@ -19,11 +19,13 @@ void initMatrix(float *A, int n = 512) {
     }
 }
 
-void jacobiIteration(float *A, int n = 512, float eps=0.01) {
+int jacobiIteration(float *A, int n = 512, float eps=0.01) {
     size_t size = sizeof *A *n*n;
     float *A_tmp = (float *) malloc(size);
     float maxeps = eps;
+    int iterations = 0;
     while(maxeps >= eps) {
+        iterations++;
         memcpy(A_tmp, A, size);    
         maxeps = 0;
         for(int i=1; i<n-1; i++) {
@@ -35,6 +37,7 @@ void jacobiIteration(float *A, int n = 512, float eps=0.01) {
         }
     }
     free(A_tmp);
+    return iterations;
 }
 
 void printMatrix(float *A, int n = 512) {
@@ -49,11 +52,12 @@ void printMatrix(float *A, int n = 512) {
 int main(int argc, char *argv[]) {
     int N;
     if (argc > 1) N = atoi(argv[1]); else N = 512; 
-    printf("Using grid size %dx%d\n", N, N);    
+    fprintf(stderr, "Using grid size %dx%d\n", N, N);    
     float *A = (float *) malloc(sizeof *A *N*N);
     initMatrix(A, N);
     printMatrix(A, N);
-    jacobiIteration(A, N);
+    int iterations = jacobiIteration(A, N);
+    fprintf(stderr, "iterations: %d\n", iterations);
     printMatrix(A, N);
     free(A);
     return 0;
