@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 bool is_power_of_two(unsigned int x)
 {
@@ -72,7 +73,6 @@ int main(int argc, char const *argv[])
     float *in;
     double *out; 
     cudaMallocManaged(&in, sizeof *in * N);
-    cudaMallocManaged(&out, sizeof *out * N);
     
     // initialize array on host with ones
     for(int i=0; i<N; i++) {
@@ -80,12 +80,13 @@ int main(int argc, char const *argv[])
     }
 
 
-    int threads = 64;             // why this?
-    int dimGrid = 2;
-    int dimBlock = 64;
-    int smemSize = sizeof *out * dimGrid;
+    int threadCountGrid = ceil((double)N / log2(N))
+    int dimBlock = 512;
+    int dimGrid = ceil((double)threadCountGrid / 512);
+    int smemSize = sizeof *out * dimBlock;
+    cudaMallocManaged(&out, sizeof *out * dimGrid);
 
-    switch(threads) {
+    switch(dimBlock) {
         case 512:
             reduce<512><<<dimGrid, dimBlock, smemSize>>>(in, out, N);
             break;
