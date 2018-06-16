@@ -12,6 +12,9 @@ bool is_power_of_two(unsigned int x)
 template <unsigned int blockSize>
 __global__ void reduce(float *g_in, double *g_out, unsigned int n)
 {
+    // largely inspired by
+    // http://developer.download.nvidia.com/compute/cuda/1.1-Beta/x86_website/projects/reduction/doc/reduction.pdf
+
     extern __shared__ double s_data[];
 
     unsigned int tid = threadIdx.x;
@@ -44,6 +47,8 @@ __global__ void reduce(float *g_in, double *g_out, unsigned int n)
     }
 
     if(tid < 32) {
+        // the code on the slides misses the sync after the partial
+        // recution of the shared array
         if(blockSize >= 64) {s_data[tid] += s_data[tid + 32]; __syncthreads();}
         if(blockSize >= 32) {s_data[tid] += s_data[tid + 16]; __syncthreads();}
         if(blockSize >= 16) {s_data[tid] += s_data[tid + 8]; __syncthreads();}
