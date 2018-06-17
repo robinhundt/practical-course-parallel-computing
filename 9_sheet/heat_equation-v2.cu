@@ -34,8 +34,11 @@ __global__ void init_matrix(float *A, int rank, int n = 1024) {
 __global__ void jacobi_iteration(float *A_in, float *A_out,
                                 int *gt_eps, int rank, float eps = 0.01,
                                 int n = 1024) {
-  __shared__ int gt_eps_block = 0;
+  __shared__ int gt_eps_block;
   int i = threadIdx.x;
+  if (i == 0) {
+    gt_eps_block = 0
+  }
 
   for(int j=1; j<1023; j++) {
     A_out[i*n+j] = (A_in[(i-1)*n+j] + A_in[(i+1)*n+j] \ 
@@ -51,7 +54,7 @@ MPI_Status exchange_borders(float *A, int rank, int n = 1024, int processes = 4)
 
   MPI_Status status;
 
-  if(rank > 0 && rank < numtasks-1) {
+  if(rank > 0 && rank < processes-1) {
     MPI_Sendrecv(&A[n], n, MPI_FLOAT, rank-1, 42, 
                   A, n, MPI_FLOAT, rank-1, 42, MPI_COMM_WORLD, &status);
     MPI_Sendrecv(&A[256*n], n, MPI_FLOAT, rank+1, 42, 
@@ -59,7 +62,7 @@ MPI_Status exchange_borders(float *A, int rank, int n = 1024, int processes = 4)
   } else if(rank == 0) {
     MPI_Sendrecv(&A[256*n], n, MPI_FLOAT, 1, 42, &A[257*n], n,
                 MPI_FLOAT, 1, 42, MPI_COMM_WORLD, &status);
-  } else if(rank == numtasks-1) {
+  } else if(rank == processes-1) {
     MPI_Sendrecv(&A[n], n, MPI_FLOAT, rank-1, 42, A, n,
                 MPI_FLOAT, rank-1, 42, MPI_COMM_WORLD, &status);
   }
@@ -125,13 +128,13 @@ int main(int argc, char** argv) {
     exchange_borders(A_block, rank);
     if(rank == 0)
       jacobi_iteration<<<1, 255>>>(&A_block[2*1024], &A_block_tmp[2*1024],
-                                   &gt_eps[rank], rank);
+                                   &gt_all_eps[rank], rank);
     else if(rank == 3)
       jacobi_iteration<<<1, 255>>>(&A_block[1*1024], &A_block_tmp[1*1024],
-        &gt_eps[rank], rank);
+        &gt_all_eps[rank], rank);
     else 
       jacobi_iteration<<<1, 256>>>(&A_block[1*1024], &A_block_tmp[1*1024],
-        &gt_eps[rank], rank);
+        &gt_all_eps[rank], rank);
 
     err = cudaGetLastError();    
     if (err != cudaSuccess) 
@@ -140,7 +143,7 @@ int main(int argc, char** argv) {
     
     MPI_Gather(MPI_IN_PLACE, 1, MPI_INT, gt_all_eps, 1, MPI_INT, 0, MPI_COMM_WORLD);
     for(int i=0; i<4; i++)
-      gt_all_eps |= gt_all_eps[i]
+      gt_all_eps |= gt_all_eps[i];
   }
 
   MPI_Finalize();
