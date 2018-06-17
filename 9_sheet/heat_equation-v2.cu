@@ -119,7 +119,7 @@ int main(int argc, char** argv) {
     fprintf(stderr, "Error: %s\n", cudaGetErrorString(err));
   cudaDeviceSynchronize();
 
-  int gt_all_eps[4];
+  int gt_all_eps[4] = {false, false, false, false};
   int *gt_eps;
   cudaMallocManaged(&gt_eps, sizeof *gt_all_eps);
   int gt_eps_global = 1;
