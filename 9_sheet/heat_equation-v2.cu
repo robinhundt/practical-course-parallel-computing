@@ -121,7 +121,7 @@ int main(int argc, char** argv) {
 
   int *gt_all_eps;
   cudaMallocManaged(&gt_all_eps, sizeof *gt_all_eps * 4);
-  bool gt_eps_global = true;
+  int gt_eps_global = 1;
 
 
   while(gt_eps_global) {
@@ -142,8 +142,11 @@ int main(int argc, char** argv) {
     cudaDeviceSynchronize();
     
     MPI_Gather(MPI_IN_PLACE, 1, MPI_INT, gt_all_eps, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    for(int i=0; i<4; i++)
-      gt_all_eps |= gt_all_eps[i];
+    if(rank == 0) {
+      for(int i=0; i<4; i++)
+        gt_eps_global |= gt_all_eps[i];
+    }
+    MPI_Bcast(&gt_eps_global, 1, MPI_INT, 0, MPI_COMM_WORLD);
   }
 
   MPI_Finalize();
