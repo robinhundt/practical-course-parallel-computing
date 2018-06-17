@@ -119,8 +119,9 @@ int main(int argc, char** argv) {
     fprintf(stderr, "Error: %s\n", cudaGetErrorString(err));
   cudaDeviceSynchronize();
 
-  int *gt_all_eps;
-  cudaMallocManaged(&gt_all_eps, sizeof *gt_all_eps * 4);
+  int gt_all_eps[4];
+  int *gt_eps;
+  cudaMallocManaged(&gt_eps, sizeof *gt_all_eps);
   int gt_eps_global = 1;
 
 
@@ -141,7 +142,7 @@ int main(int argc, char** argv) {
       fprintf(stderr, "Error: %s\n", cudaGetErrorString(err));
     cudaDeviceSynchronize();
     
-    MPI_Gather(MPI_IN_PLACE, 1, MPI_INT, gt_all_eps, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Gather(gt_eps, 1, MPI_INT, gt_all_eps, 1, MPI_INT, 0, MPI_COMM_WORLD);
     if(rank == 0) {
       for(int i=0; i<4; i++)
         gt_eps_global |= gt_all_eps[i];
