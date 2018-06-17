@@ -37,7 +37,7 @@ __global__ void jacobi_iteration(float *A_in, float *A_out,
   __shared__ int gt_eps_block;
   int i = threadIdx.x;
   if (i == 0) {
-    gt_eps_block = 0
+    gt_eps_block = 0;
   }
 
   for(int j=1; j<1023; j++) {
