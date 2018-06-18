@@ -24,7 +24,7 @@ int main(int argc, char const *argv[])
     a = (double *)malloc(N*N*sizeof(double));
     b = (double *)malloc(N*N*sizeof(double));
     result = (double *)malloc(N*N*sizeof(double));
-    #pragma acc data, create(a[0:N*N], b[0:N*N]) copyout (result)
+    #pragma acc data create(a[0:N*N], b[0:N*N]) copyout (result[0:N*N])
     {   
         //init
         #pragma acc loop
