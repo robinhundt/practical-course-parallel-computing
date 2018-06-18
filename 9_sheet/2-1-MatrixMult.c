@@ -16,9 +16,9 @@ void init(double *a, double *b){
 void mult(double *a, double *b, double *result){
     #pragma acc data copyin (a[0:N * N], b[0:N * N]) copyout (result [0: N * N])
     { 
-        #pragma acc parallel loop gang
+        #pragma acc loop gang
         for(int i = 0;i<N;i++){
-            #pragma acc parallel loop vector
+            #pragma acc loop vector
             for(int j=0; j<N;j++){
                 double sum = 0;
                 for(int k=0;k<N;k++){
