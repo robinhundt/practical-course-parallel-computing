@@ -24,7 +24,7 @@ int main(int argc, char const *argv[])
     a = (double *)malloc(N*N*sizeof(double));
     b = (double *)malloc(N*N*sizeof(double));
     result = (double *)malloc(N*N*sizeof(double));
-    #pragma acc data create(a[0:N*N], b[0:N*N]) copyout (result)
+    #pragma acc data, create(a[0:N*N], b[0:N*N]) copyout (result)
     {   
         //init
         #pragma acc loop
@@ -34,9 +34,9 @@ int main(int argc, char const *argv[])
             }
         }
         //mult
-        #pragma acc loop gang
+        #pragma acc loop gang independent
             for(int i = 0;i<N;i++){
-                #pragma acc loop vector
+                #pragma acc loop vector independent
                 for(int j=0; j<N;j++){
                     double sum = 0;
                     for(int k=0;k<N;k++){
