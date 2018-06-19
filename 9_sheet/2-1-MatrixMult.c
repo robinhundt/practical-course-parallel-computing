@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#define N 1500
+#define N 1024
 
 
 void init(double *a, double *b){
@@ -15,16 +15,17 @@ void init(double *a, double *b){
 
 void mult(double *a, double *b, double *result){
     #pragma acc data copyin (a[0:N * N], b[0:N * N]) copyout (result [0: N * N])
-    { 
-        #pragma acc loop gang
+    {   
+        #pragma acc kernels
+        #pragma acc loop gang independent
         for(int i = 0;i<N;i++){
-            #pragma acc loop vector
+            #pragma acc loop vector independent
             for(int j=0; j<N;j++){
                 double sum = 0;
                 for(int k=0;k<N;k++){
                     sum+= a[i*N+k]*b[j+k*N];
                 }
-                result[i + j*N] =sum;
+                result[i*N + j] =sum;
             }
         }
     }
