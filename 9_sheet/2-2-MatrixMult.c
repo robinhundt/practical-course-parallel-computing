@@ -20,9 +20,8 @@ void printResult(double *result){
 
 int main(int argc, char const *argv[])
 {   
-    double *a,*b,*result;
+    double *a,*result;
     a = (double *)malloc(N*N*sizeof(double));
-    b = (double *)malloc(N*N*sizeof(double));
     result = (double *)malloc(N*N*sizeof(double));
     #pragma acc data create(a[0:N*N]) copyout (result[0:N*N])
     {   
@@ -51,7 +50,7 @@ int main(int argc, char const *argv[])
 
     printResult(result);
     free(a);
-    free(b);
+
     free(result);
     return 0;
 }
