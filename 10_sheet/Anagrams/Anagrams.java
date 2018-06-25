@@ -38,11 +38,11 @@ public class Anagrams {
   public static class AnagramReducer
        extends Reducer<Text,Text,Text,Text> {
     private Text result = new Text();
-    private HashSet<String> uniqueVals = new HashSet<>();
 
     public void reduce(Text key, Iterable<Text> values,
                        Context context
                        ) throws IOException, InterruptedException {
+      HashSet<String> uniqueVals = new HashSet<>();
       int sum = 0;
       for (Text val : values) {
         for (String word : val.toString().split(" ")) {
