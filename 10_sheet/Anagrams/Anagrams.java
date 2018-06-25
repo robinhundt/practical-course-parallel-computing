@@ -1,5 +1,7 @@
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.StringTokenizer;
+import java.util.*;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -14,51 +16,57 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 public class Anagrams {
 
   public static class TokenizerMapper
-       extends Mapper<Object, Text, Text, IntWritable>{
+       extends Mapper<Object, Text, Text, Text>{
 
     private final static IntWritable one = new IntWritable(1);
-    private Text character = new Text();
+    private Text hash = new Text();
 
     public void map(Object key, Text value, Context context
                     ) throws IOException, InterruptedException {
-      StringTokenizer itr = new StringTokenizer(value.toString());
-      char[] chars;
+      StringTokenizer itr = new StringTokenizer(value.toString().toLowerCase());
+      char[] hashChars;
       while (itr.hasMoreTokens()) {
-        chars =itr.nextToken().toCharArray();
-        for (char c : chars) {
-          character.set(c+"");
-          context.write(character, one);
-        }
-        
+        String word = itr.nextToken();
+        hashChars = word.toCharArray();
+        Arrays.sort(hashChars);
+        hash.set(new String(hashChars));
+        context.write(hash, new Text(word));
       }
     }
   }
 
-  public static class IntSumReducer
-       extends Reducer<Text,IntWritable,Text,IntWritable> {
-    private IntWritable result = new IntWritable();
+  public static class AnagramReducer
+       extends Reducer<Text,Text,Text,Text> {
+    private Text result = new Text();
+    private HashSet<String> uniqueVals = new HashSet<>();
 
-    public void reduce(Text key, Iterable<IntWritable> values,
+    public void reduce(Text key, Iterable<Text> values,
                        Context context
                        ) throws IOException, InterruptedException {
       int sum = 0;
-      for (IntWritable val : values) {
-        sum += val.get();
+      for (Text val : values) {
+        for (String word : val.toString().split(" ")) {
+          uniqueVals.add(word);
+        }
       }
-      result.set(sum);
+      StringBuilder resultBuilder = new StringBuilder();
+      for (String word : uniqueVals) {
+        resultBuilder.append(word).append(' ');
+      }
+      result.set(resultBuilder.toString());
       context.write(key, result);
     }
   }
 
   public static void main(String[] args) throws Exception {
     Configuration conf = new Configuration();
-    Job job = Job.getInstance(conf, "character count");
-    job.setJarByClass(CharacterCount.class);
+    Job job = Job.getInstance(conf, "Anagrams");
+    job.setJarByClass(Anagrams.class);
     job.setMapperClass(TokenizerMapper.class);
-    job.setCombinerClass(IntSumReducer.class);
-    job.setReducerClass(IntSumReducer.class);
+    job.setCombinerClass(AnagramReducer.class);
+    job.setReducerClass(AnagramReducer.class);
     job.setOutputKeyClass(Text.class);
-    job.setOutputValueClass(IntWritable.class);
+    job.setOutputValueClass(Text.class);
     FileInputFormat.addInputPath(job, new Path(args[0]));
     FileOutputFormat.setOutputPath(job, new Path(args[1]));
     System.exit(job.waitForCompletion(true) ? 0 : 1);
