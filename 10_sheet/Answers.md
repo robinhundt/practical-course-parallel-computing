@@ -21,13 +21,13 @@ It is optional because the reducer doesn't require that the output of the mapper
 #### c) Explain the purpose of the NameNode, DataNode, ResourceManager, and NodeManager daemons in HDFS and YARN!
 
 **NameNode**:  
-The NameNode is the central part of the HDFS where the record of all files in the system is kept and the file locations on the cluster are tracked. Block locations are not stored persistently and are reconstructed from the data nodes when the system starts.
+The NameNode is the central part of the HDFS where the record of all files in the system is kept (metadata) and the file locations on the cluster are tracked. Block locations are not stored persistently and are reconstructed from the data nodes when the system starts.
 **DataNode**:  
 DataNodes provide the actual storage and are responsible for serving read and write requests from the clients.
 **ResourceManager**:
 The ResourceManager is part of the Yarn system and the ultimate authority that divides the cluster resources among the applications. It's main responsibility is scheduling the resources of the cluster. 
 **NodeManager**:
-The NodeManager within the Yarn system is responsible for managing the resources on the individual compute noes in a cluster. It's tasks are communicating with the ResourceManager, managing containers, monitoring node resources (e.g. CPU/Memory).
+The NodeManager within the Yarn system is responsible for managing the resources on the individual compute nodes in a cluster. It's tasks are communicating with the ResourceManager, managing containers, monitoring node resources (e.g. CPU/Memory).
 
 #### d) Explain the meaning of the replication factor and the blocksize in the Hadoop Distributed File System (HDFS). What is controlled by the number of slots?
 Files within in the HDFS are partitioned into blocks with a maximal size of `blocksize`. Those blocks are replicated up to `replication factor` many times and distributed on the DataNodes, such that identical blocks are on different nodes.  

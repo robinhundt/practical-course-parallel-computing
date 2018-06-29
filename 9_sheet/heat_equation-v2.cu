@@ -23,7 +23,7 @@ __global__ void init_matrix(float *A, int rank, int n = 1024) {
 
   int i_global = i + rank * 256;
 
-  for(int j=1; j<1024; j++) {
+  for(int j=0; j<1024; j++) {
     if(i_global < n/2 && j < n/2 || n/2 >= i_global && n/2 >= j)
       A[i*n+j] = 1;
     else  
