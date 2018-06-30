@@ -7,3 +7,5 @@
 *.csv
 .ipynb_checkpoints/
 *.zip
+*.jar
+

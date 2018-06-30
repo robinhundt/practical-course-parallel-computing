@@ -51,7 +51,6 @@ public class BiRelationship {
         Job job = Job.getInstance(conf, "Bi Relationship");
         job.setJarByClass(BiRelationship.class);
         job.setMapperClass(TokenizerMapper.class);
-        job.setCombinerClass(IntSumReducer.class);
         job.setReducerClass(IntSumReducer.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);
